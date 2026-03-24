@@ -7,9 +7,9 @@ restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 
 [services]
-# Memaksa Railway mengarahkan trafik domain ke port internal 3000
-# Sesuai dengan default PORT di server.js jika env.PORT tidak ada
-tcp.port = 3000
+# Memaksa Railway mengarahkan trafik domain ke port internal 8080
+# Sesuai dengan default PORT baru di server.js
+tcp.port = 8080
 
 [[services.healthChecks]]
 path = "/"
