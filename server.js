@@ -175,16 +175,32 @@ async function connectWA() {
         })
 
         sock.ev.on('messages.upsert', async ({ messages, type }) => {
+            console.log(`[EVENT] messages.upsert | type=${type} | count=${messages.length}`)
             if (type !== 'notify') return
             for (const msg of messages) {
-                if (msg.key.fromMe) continue
-                const from = msg.key.remoteJid?.replace('@s.whatsapp.net', '') ?? ''
+                // Jangan abaikan fromMe jika user chat ke diri sendiri
+                const fromRaw = msg.key.remoteJid ?? ''
+                const fromMe = msg.key.fromMe
+                const from = fromRaw.replace('@s.whatsapp.net', '').replace('@g.us', '').replace('@lid', '')
+
+                const myID = sock.user?.id?.split(':')[0]?.split('@')[0] ?? ''
+                const myLid = sock.user?.lid?.split('@')[0] ?? ''
+
                 const msgType = Object.keys(msg.message || {})[0] ?? ''
+                console.log(`[MSG] Dari: ${fromRaw} (Me: ${fromMe}) | Tipe: ${msgType}`)
 
-                console.log(`[MSG] Dari: ${from} | Tipe: ${msgType}`)
+                // Normalisasi nomor MY_NUMBER (hanya angka)
+                const myNumberClean = MY_NUMBER.replace(/[^0-9]/g, '')
+                const fromNumberClean = from.replace(/[^0-9]/g, '')
 
-                if (from !== MY_NUMBER) {
-                    console.log(`[MSG] Diabaikan: Nomor ${from} tidak sama dengan MY_NUMBER (${MY_NUMBER})`)
+                // Syarat: Pengirim adalah owner (berdasarkan nomor HP, LID, atau self-chat)
+                const isOwner = (fromNumberClean === myNumberClean) ||
+                    (from === myID) ||
+                    (from === myLid) ||
+                    (fromRaw === MY_NUMBER);
+
+                if (!isOwner) {
+                    console.log(`[MSG] Diabaikan: ${from} bukan Owner (${myNumberClean}/${myID}/${myLid})`)
                     continue
                 }
 
