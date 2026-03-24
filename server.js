@@ -239,12 +239,15 @@ async function connectWA() {
                 if (!text.trim()) continue
 
                 try {
+                    // Gunakan nomor HP asli untuk Webhook jika pengirim adalah owner (biar PHP tidak bingung dengan LID)
+                    const webhookSender = isOwner ? MY_NUMBER : from;
+
                     const r = await axios.post(WEBHOOK_URL, {
-                        sender: from, pengirim: from, message: text, pesan: text,
+                        sender: webhookSender, pengirim: webhookSender, message: text, pesan: text,
                         type: isVoice ? 'ptt' : 'text', is_voice: isVoice,
                         name: msg.pushName ?? '', timestamp: msg.messageTimestamp, id: msg.key.id
                     }, { headers: { 'Content-Type': 'application/json' }, timeout: 90000 })
-                    console.log('[WEBHOOK] Success:', JSON.stringify(r.data))
+                    console.log(`[WEBHOOK] Success to ${webhookSender}:`, JSON.stringify(r.data))
                 } catch (e) {
                     console.error('[WEBHOOK] Error:', e.message)
                     if (e.response) console.error('[WEBHOOK] Response Status:', e.response.status)
