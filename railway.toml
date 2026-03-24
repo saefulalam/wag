@@ -1,13 +1,7 @@
 [build]
-# Menggunakan builder default (Nixpacks)
+# Nixpacks (Auto detection)
 
 [deploy]
-# Kita biarkan Railway mendeteksi start command dari package.json (npm start)
-# Ini memastikan environment terseting dengan benar oleh Nixpacks.
+# Membiarkan Railway mendeteksi start command dan port secara otomatis
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
-
-[services]
-# Memastikan Railway tahu app ini mendengarkan di HTTP
-# Port akan otomatis sinkron dengan process.env.PORT
-tcp.port = 3000
