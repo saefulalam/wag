@@ -33,6 +33,7 @@ process.on('unhandledRejection', (reason, promise) => {
 const PORT = process.env.PORT || 8080 // Menggunakan 8080 sebagai cadangan umum Railway/Render
 const CLEAR_AUTH = process.env.CLEAR_AUTH === 'true'
 
+console.log(`[INIT] Deployment Fingerprint: v${Date.now()}`)
 console.log(`[INIT] Starting on Port: ${PORT}`)
 console.log(`[INIT] Webhook: ${WEBHOOK_URL ? 'Set' : 'NOT SET'}`)
 
@@ -110,8 +111,14 @@ app.post('/send', async (req, res) => {
 async function connectWA() {
     try {
         const { state, saveCreds } = await useMultiFileAuthState('./auth')
-        const { version, isLatest } = await fetchLatestBaileysVersion()
-        console.log(`[WA] Using Baileys v${version.join('.')}, isLatest: ${isLatest}`)
+        let version = [2, 3000, 1015901307] // Versi fallback yang sangat stabil
+        try {
+            const v = await fetchLatestBaileysVersion()
+            version = v.version
+            console.log(`[WA] Using Baileys v${version.join('.')}, isLatest: ${v.isLatest}`)
+        } catch (e) {
+            console.warn('[WA] Version fetch failed, using fallback:', version.join('.'))
+        }
 
         sock = makeWASocket({
             auth: state,
