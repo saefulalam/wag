@@ -33,6 +33,9 @@ process.on('unhandledRejection', (reason, promise) => {
 const PORT = process.env.PORT || 3000
 const CLEAR_AUTH = process.env.CLEAR_AUTH === 'true'
 
+console.log(`[INIT] Starting on Port: ${PORT}`)
+console.log(`[INIT] Webhook: ${WEBHOOK_URL ? 'Set' : 'NOT SET'}`)
+
 if (CLEAR_AUTH && fs.existsSync('./auth')) {
     try {
         fs.rmSync('./auth', { recursive: true, force: true })
@@ -109,8 +112,10 @@ async function connectWA() {
         const { state, saveCreds } = await useMultiFileAuthState('./auth')
         sock = makeWASocket({
             auth: state,
-            browser: ['Desktop', 'Chrome', '120.0.6099.199'], // User agent yang lebih modern
-            printQRInTerminal: true
+            browser: ['Windows', 'Chrome', '11.0.0'], // User agent yang sangat umum & stabil
+            printQRInTerminal: true,
+            logger: { level: 'silent', trace() { }, debug() { }, info() { }, warn() { }, error: console.error, child() { return this } },
+            defaultQueryTimeoutMs: undefined
         })
         sock.ev.on('creds.update', saveCreds)
 
