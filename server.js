@@ -180,7 +180,13 @@ async function connectWA() {
                 if (msg.key.fromMe) continue
                 const from = msg.key.remoteJid?.replace('@s.whatsapp.net', '') ?? ''
                 const msgType = Object.keys(msg.message || {})[0] ?? ''
-                if (from !== MY_NUMBER) continue
+
+                console.log(`[MSG] Dari: ${from} | Tipe: ${msgType}`)
+
+                if (from !== MY_NUMBER) {
+                    console.log(`[MSG] Diabaikan: Nomor ${from} tidak sama dengan MY_NUMBER (${MY_NUMBER})`)
+                    continue
+                }
 
                 let text = ''
                 let isVoice = false
@@ -222,8 +228,11 @@ async function connectWA() {
                         type: isVoice ? 'ptt' : 'text', is_voice: isVoice,
                         name: msg.pushName ?? '', timestamp: msg.messageTimestamp, id: msg.key.id
                     }, { headers: { 'Content-Type': 'application/json' }, timeout: 90000 })
-                    console.log('[WEBHOOK]', r.data)
-                } catch (e) { console.error('[WEBHOOK]', e.message) }
+                    console.log('[WEBHOOK] Success:', JSON.stringify(r.data))
+                } catch (e) {
+                    console.error('[WEBHOOK] Error:', e.message)
+                    if (e.response) console.error('[WEBHOOK] Response Status:', e.response.status)
+                }
             }
         })
 
