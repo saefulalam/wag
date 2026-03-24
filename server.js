@@ -12,7 +12,7 @@ if (!globalThis.crypto) {
 }
 
 const require = createRequire(import.meta.url)
-const qrcode = require('qrcode-terminal')
+// QR Code no longer needs local package for terminal
 
 const app = express()
 app.use(express.json())
@@ -73,17 +73,21 @@ app.get('/', (_, res) => {
 app.get('/qr', (req, res) => {
     if (!lastQR) {
         return res.send(`<html><body style="font-family:sans-serif;padding:40px;text-align:center">
-            <h2>${connected ? '✅ Connected!' : `⏳ Connecting... (retry ${retries})`}</h2>
+            <h2>${connected ? '✅ Terhubung!' : `⏳ Menghubungkan... (tunggu sebentar)`}</h2>
+            <p>Jika sudah terhubung, Anda tidak perlu scan lagi.</p>
             <script>setTimeout(()=>location.reload(),5000)</script>
         </body></html>`)
     }
-    qrcode.generate(lastQR, { small: false }, qrStr => {
-        res.send(`<html><body style="font-family:monospace;padding:20px">
-            <h3>Scan dengan WhatsApp → Linked Devices</h3>
-            <pre style="font-size:9px;line-height:1.1">${qrStr}</pre>
-            <script>setTimeout(()=>location.reload(),20000)</script>
-        </body></html>`)
-    })
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(lastQR)}`
+    res.send(`<html><body style="font-family:sans-serif;padding:40px;text-align:center">
+        <h3>Pindai QR ini di WhatsApp</h3>
+        <p>Settings > Linked Devices > Link a Device</p>
+        <div style="margin:20px 0;">
+            <img src="${qrApiUrl}" alt="QR Code" style="border:10px solid white; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+        </div>
+        <p>Halaman ini akan refresh otomatis saat tersambung.</p>
+        <script>setTimeout(()=>location.reload(),15000)</script>
+    </body></html>`)
 })
 
 app.post('/send', async (req, res) => {
@@ -133,8 +137,7 @@ async function connectWA() {
         sock.ev.on('connection.update', async ({ connection, qr, lastDisconnect }) => {
             if (qr) {
                 lastQR = qr
-                console.log('[QR] Ready — open /qr')
-                qrcode.generate(qr, { small: true })
+                console.log('[QR] Update: Silakan akses domain Anda di link /qr untuk pindai.')
             }
             if (connection === 'open') {
                 connected = true; lastQR = null; retries = 0
