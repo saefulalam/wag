@@ -3,7 +3,7 @@ import axios from 'axios'
 import FormData from 'form-data'
 import fs from 'fs'
 import { createRequire } from 'module'
-import { makeWASocket, useMultiFileAuthState, DisconnectReason, downloadMediaMessage } from '@whiskeysockets/baileys'
+import { makeWASocket, useMultiFileAuthState, DisconnectReason, downloadMediaMessage, fetchLatestBaileysVersion } from '@whiskeysockets/baileys'
 import { webcrypto } from 'node:crypto'
 
 // Polyfill untuk Node < 19 agar crypto tersedia secara global (dibutuhkan Baileys)
@@ -110,15 +110,16 @@ app.post('/send', async (req, res) => {
 async function connectWA() {
     try {
         const { state, saveCreds } = await useMultiFileAuthState('./auth')
+        const { version, isLatest } = await fetchLatestBaileysVersion()
+        console.log(`[WA] Using Baileys v${version.join('.')}, isLatest: ${isLatest}`)
+
         sock = makeWASocket({
             auth: state,
-            browser: ['Desktop', 'Chrome', '124.0.0.0'], // Profil terbaru & stabil
+            version,
+            browser: ['Ubuntu', 'Chrome', '20.0.04'],
             printQRInTerminal: true,
             logger: { level: 'silent', trace() { }, debug() { }, info() { }, warn() { }, error: console.error, child() { return this } },
-            markOnlineOnConnect: false,
-            connectTimeoutMs: 60000,
-            defaultQueryTimeoutMs: 60000,
-            keepAliveIntervalMs: 10000
+            markOnlineOnConnect: false
         })
         sock.ev.on('creds.update', saveCreds)
 
