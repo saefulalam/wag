@@ -30,7 +30,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('[CRASH] Unhandled Rejection at:', promise, 'reason:', reason)
 })
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 8080 // Menggunakan 8080 sebagai cadangan umum Railway/Render
 const CLEAR_AUTH = process.env.CLEAR_AUTH === 'true'
 
 console.log(`[INIT] Starting on Port: ${PORT}`)
@@ -112,10 +112,13 @@ async function connectWA() {
         const { state, saveCreds } = await useMultiFileAuthState('./auth')
         sock = makeWASocket({
             auth: state,
-            browser: ['Windows', 'Chrome', '11.0.0'], // User agent yang sangat umum & stabil
+            browser: ['Desktop', 'Chrome', '124.0.0.0'], // Profil terbaru & stabil
             printQRInTerminal: true,
             logger: { level: 'silent', trace() { }, debug() { }, info() { }, warn() { }, error: console.error, child() { return this } },
-            defaultQueryTimeoutMs: undefined
+            markOnlineOnConnect: false,
+            connectTimeoutMs: 60000,
+            defaultQueryTimeoutMs: 60000,
+            keepAliveIntervalMs: 10000
         })
         sock.ev.on('creds.update', saveCreds)
 
@@ -132,7 +135,11 @@ async function connectWA() {
             if (connection === 'close') {
                 connected = false
                 const code = lastDisconnect?.error?.output?.statusCode
-                console.log(`[WA] Closed code=${code} (${lastDisconnect?.error?.message || 'Reason unknown'})`)
+                const reason = lastDisconnect?.error?.message || 'Unknown'
+                console.log(`[WA] Closed code=${code} | Reason: ${reason}`)
+                if (lastDisconnect?.error) {
+                    console.dir(lastDisconnect.error, { depth: null }) // Log objek error lengkap untuk debugging
+                }
 
                 // Menangani session invalid/logout (401, 403, 405 dll)
                 const shouldClear = [
