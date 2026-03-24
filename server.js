@@ -96,12 +96,13 @@ app.post('/send', async (req, res) => {
     try {
         const jid = `${to}@s.whatsapp.net`
         if (type === 'ptt') {
+            const isMp3 = req.body.url?.endsWith('.mp3') || audio_base64;
             const audioData = audio_base64
                 ? { audio: Buffer.from(audio_base64, 'base64') }
                 : { audio: { url: req.body.url } }
             await sock.sendMessage(jid, {
                 ...audioData,
-                mimetype: 'audio/ogg; codecs=opus',
+                mimetype: isMp3 ? 'audio/mpeg' : 'audio/ogg; codecs=opus',
                 ptt: true
             })
         } else if (type === 'image') {
