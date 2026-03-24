@@ -194,13 +194,15 @@ async function connectWA() {
                 const fromNumberClean = from.replace(/[^0-9]/g, '')
 
                 // Syarat: Pengirim adalah owner (berdasarkan nomor HP, LID, atau self-chat)
+                const ownerLid = process.env.OWNER_LID ?? ''
                 const isOwner = (fromNumberClean === myNumberClean) ||
                     (from === myID) ||
                     (from === myLid) ||
+                    (from === ownerLid) ||
                     (fromRaw === MY_NUMBER);
 
                 if (!isOwner) {
-                    console.log(`[MSG] Diabaikan: ${from} bukan Owner (${myNumberClean}/${myID}/${myLid})`)
+                    console.log(`[MSG] Diabaikan: ${from} bukan Owner (${myNumberClean}/${myID}/${myLid}/${ownerLid})`)
                     continue
                 }
 
