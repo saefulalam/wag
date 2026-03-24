@@ -95,12 +95,20 @@ app.post('/send', async (req, res) => {
     const { to, message, type, audio_base64 } = req.body
     try {
         const jid = `${to}@s.whatsapp.net`
-        if (type === 'ptt' && audio_base64) {
+        if (type === 'ptt') {
+            const audioData = audio_base64
+                ? { audio: Buffer.from(audio_base64, 'base64') }
+                : { audio: { url: req.body.url } }
             await sock.sendMessage(jid, {
-                audio: Buffer.from(audio_base64, 'base64'),
+                ...audioData,
                 mimetype: 'audio/ogg; codecs=opus',
                 ptt: true
             })
+        } else if (type === 'image') {
+            const imageData = req.body.image_base64
+                ? { image: Buffer.from(req.body.image_base64, 'base64') }
+                : { image: { url: req.body.url } }
+            await sock.sendMessage(jid, { ...imageData, caption: message })
         } else {
             await sock.sendMessage(jid, { text: message })
         }
