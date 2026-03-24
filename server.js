@@ -30,12 +30,10 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('[CRASH] Unhandled Rejection at:', promise, 'reason:', reason)
 })
 
-const PORT = process.env.PORT || 8080 // Menggunakan 8080 sebagai cadangan umum Railway/Render
-const CLEAR_AUTH = process.env.CLEAR_AUTH === 'true'
-
+const PORT = process.env.PORT || 8080
 console.log(`[INIT] Deployment Fingerprint: v${Date.now()}`)
-console.log(`[INIT] Starting on Port: ${PORT}`)
-console.log(`[INIT] Webhook: ${WEBHOOK_URL ? 'Set' : 'NOT SET'}`)
+console.log(`[INIT] Port used: ${PORT} (${process.env.PORT ? 'from PORT env var' : 'default fallback'})`)
+console.log(`[INIT] Webhook URL: ${WEBHOOK_URL ? 'Set' : 'NOT SET'}`)
 
 if (CLEAR_AUTH && fs.existsSync('./auth')) {
     try {
@@ -124,7 +122,6 @@ async function connectWA() {
             auth: state,
             version,
             browser: ['Ubuntu', 'Chrome', '20.0.04'],
-            printQRInTerminal: true,
             logger: { level: 'silent', trace() { }, debug() { }, info() { }, warn() { }, error: console.error, child() { return this } },
             markOnlineOnConnect: false
         })
