@@ -30,11 +30,11 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('[CRASH] Unhandled Rejection at:', promise, 'reason:', reason)
 })
 
-const PORT = process.env.PORT || 8080
+const PORT = process.env.PORT || 3000
 const CLEAR_AUTH = process.env.CLEAR_AUTH === 'true'
-console.log(`[INIT] Deployment Fingerprint: v${Date.now()}`)
-console.log(`[INIT] Port used: ${PORT} (${process.env.PORT ? 'from PORT env var' : 'default fallback'})`)
-console.log(`[INIT] Webhook URL: ${WEBHOOK_URL ? 'Set' : 'NOT SET'}`)
+console.log(`[INIT] --- DEBUG MODE ---`)
+console.log(`[INIT] Port: ${PORT}`)
+console.log(`[INIT] Webhook: ${WEBHOOK_URL ? 'Set' : 'NOT SET'}`)
 
 if (CLEAR_AUTH && fs.existsSync('./auth')) {
     try {
@@ -122,9 +122,11 @@ async function connectWA() {
         sock = makeWASocket({
             auth: state,
             version,
-            browser: ['Ubuntu', 'Chrome', '20.0.04'],
+            browser: ['Desktop', 'Chrome', '124.0.6367.60'], // Versi Chrome terbaru (April 2024)
             logger: { level: 'silent', trace() { }, debug() { }, info() { }, warn() { }, error: console.error, child() { return this } },
-            markOnlineOnConnect: false
+            markOnlineOnConnect: false,
+            linkPreviewImageThumbnailWidth: 192,
+            shouldSyncHistoryMessage: () => false // Mempercepat koneksi awal
         })
         sock.ev.on('creds.update', saveCreds)
 
