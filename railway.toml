@@ -1,19 +1,7 @@
 [build]
-# Menggunakan builder default (Nixpacks)
+# Nixpacks (Auto detection)
 
 [deploy]
-# Biarkan Railway mendeteksi start command secara otomatis (npm start)
+# Biarkan Railway mendeteksi segalanya secara otomatis (Port & Start Command)
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
-
-[services]
-# Memaksa Railway mengarahkan trafik domain ke port internal 8080
-# Sesuai dengan default PORT baru di server.js
-tcp.port = 8080
-
-[[services.healthChecks]]
-path = "/"
-interval = 10
-timeout = 5
-successThreshold = 1
-failureThreshold = 3
