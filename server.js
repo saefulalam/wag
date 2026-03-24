@@ -31,6 +31,7 @@ process.on('unhandledRejection', (reason, promise) => {
 })
 
 const PORT = process.env.PORT || 8080
+const CLEAR_AUTH = process.env.CLEAR_AUTH === 'true'
 console.log(`[INIT] Deployment Fingerprint: v${Date.now()}`)
 console.log(`[INIT] Port used: ${PORT} (${process.env.PORT ? 'from PORT env var' : 'default fallback'})`)
 console.log(`[INIT] Webhook URL: ${WEBHOOK_URL ? 'Set' : 'NOT SET'}`)
