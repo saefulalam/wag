@@ -15,7 +15,8 @@ const require = createRequire(import.meta.url)
 // QR Code no longer needs local package for terminal
 
 const app = express()
-app.use(express.json())
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL
 const GROQ_KEY = process.env.GROQ_KEY
@@ -96,15 +97,24 @@ app.post('/send', async (req, res) => {
     try {
         const jid = `${to}@s.whatsapp.net`
         if (type === 'ptt') {
-            const isMp3 = req.body.url?.endsWith('.mp3') || audio_base64;
-            const audioData = audio_base64
-                ? { audio: Buffer.from(audio_base64, 'base64') }
-                : { audio: { url: req.body.url } }
-            await sock.sendMessage(jid, {
-                ...audioData,
-                mimetype: isMp3 ? 'audio/mpeg' : 'audio/ogg; codecs=opus',
-                ptt: true
-            })
+            // Support dua mode:
+            // 1. url     → PHP simpan file publik, Railway download via URL (tidak ada masalah size)
+            // 2. audio_base64 → langsung kirim buffer (untuk kasus khusus)
+            let audioPayload
+            if (req.body.url) {
+                // Download audio dari URL publik PHP
+                const audioResp = await axios.get(req.body.url, { responseType: 'arraybuffer', timeout: 15000 })
+                const buf = Buffer.from(audioResp.data)
+                const mime = req.body.mimetype || 'audio/mpeg'
+                audioPayload = { audio: buf, mimetype: mime, ptt: true }
+                console.log(`[PTT] Downloaded from URL: ${req.body.url} (${buf.length} bytes)`)
+            } else if (audio_base64) {
+                const mime = req.body.mimetype || 'audio/mpeg'
+                audioPayload = { audio: Buffer.from(audio_base64, 'base64'), mimetype: mime, ptt: true }
+            } else {
+                return res.status(400).json({ error: 'no audio source' })
+            }
+            await sock.sendMessage(jid, audioPayload)
         } else if (type === 'image') {
             const imageData = req.body.image_base64
                 ? { image: Buffer.from(req.body.image_base64, 'base64') }
